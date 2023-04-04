@@ -1,0 +1,22 @@
+CODE Major Grade Required minimums (Major Grade Number 1):
+    Must be OOP Python with operable UI w/Menu (UI Class is NOT main module)
+    Help About Dialog
+    Must connect to a database
+    Must be connected to Skunkworks internal cloud (i.e., Lab Cloud)
+    Must display data from the table
+Meeting minimums achieves a grade of 70.
+
+Code Grade Enhancers: To achieve each tier, ALL of the lower tiers must be achieved.
+To achieve an 80 or better, code must include the following minimums:
+    Must include background imagery
+    Must have a full working menu as shown in class (If not sure ASK)
+    Must complete CRUD operations as directed by user in some manner
+To achieve a 90 or better:
+    Must have a class modeling the data used in transfer to/from the table (See example)
+    Must have full CRUD operations (CREATE, READ, UPDATE, DELETE)
+    Must accompany a proposal that scores above a 90
+To achieve above a 95:
+    Your program must be comprehensively produced and show significant programmatic prowess. One of 
+    the biggest ways to guarantee this after meeting the 90% minimums, is to place your table on the lab 
+    cloud, and be able to connect remotely to it. This can be a copy of your table. Connection strings will be 
+    explained in class
