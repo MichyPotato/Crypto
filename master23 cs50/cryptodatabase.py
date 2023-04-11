@@ -73,3 +73,16 @@ class CryptoDatabase:
             self.cursor.execute(thingy)
             self.connection.commit()
             result=self.cursor.fetchall()
+
+    def insertCryptoDB(self):
+        #FIX:
+        pass
+    def updateCryptoDB(self):
+        #FIX:
+        pass
+    def deleteCryptoDB(self):
+        #FIX:
+        pass
+    def goToEntry(self):
+        #FIX:
+        pass

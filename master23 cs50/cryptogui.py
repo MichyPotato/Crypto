@@ -5,11 +5,15 @@ AP Computer Science
 Master Project GUI
 Spring of 2023
 '''
+#EXTRA CODE:
+#FIX:
 
 #imports
 from cryptodatabase import CryptoDatabase
+from encryption import Encryption
 from tkinter import messagebox
 from tkinter import scrolledtext
+from tkinter import ttk
 import tkinter as tk
 import PIL
 from PIL import ImageTk, Image
@@ -20,8 +24,11 @@ class CryptoGUI:
         self.textColor= "#00cc00"
         self.sFont= "Terminal"
         self.userMessage=""
+        self.isEncryptButton="False"
+        self.recentSelection1=""
         #define connection and instantiation of the database file
         self.db=CryptoDatabase()
+        self.encrypt=Encryption()
         self.db.setConnection()
         #processes to run
         self.createLoginWindow()
@@ -38,9 +45,14 @@ class CryptoGUI:
         self.loginWindow.attributes('-fullscreen',True)
         self.logo = Image.open("logo.png")
         self.logo = self.logo.resize((256, 120), Image.ANTIALIAS)
-        self.wPic = ImageTk.PhotoImage(self.logo)
-        self.wMyPic = tk.Label(self.loginWindow, image=self.wPic, bg="black")
-        self.wMyPic.place(x = 50, y = 10)
+        self.lPic = ImageTk.PhotoImage(self.logo)
+        self.lMyPic = tk.Label(self.loginWindow, image=self.lPic, bg="black")
+        self.lMyPic.place(x = 50, y = 10)
+        # self.bgPic = Image.open("cryptobg.png")
+        # #self.bgPic = self.bgPic.resize((1224, 450), Image.ANTIALIAS)
+        # self.bPic = ImageTk.PhotoImage(self.bgPic)
+        # self.bMyPic = tk.Label(self.loginWindow, image=self.bPic, bg="black")
+        # self.bMyPic.place(x = 300, y = 400)
 
     def createLoginMenu(self):
         #menu system initiated
@@ -114,34 +126,43 @@ class CryptoGUI:
         self.PasswordSUEntry.place(x=450,y=450)
 
     def createCryptoButtons(self):
-        self.idText="Encryption Number"
-        #GUI fields' labels, text fields
+        #define self.idText
+        self.idText=""
+        #GUI fields' labels, text fields,etc
         #create labels:
-        self.idLabel=tk.Label(self.loginWindow, text=self.idText, font=(self.sFont, 18), bg=("black"), fg=(self.textColor))
+        self.idLabel=tk.Label(self.loginWindow, text="Encryption Number", font=(self.sFont, 18), bg=("black"), fg=(self.textColor))
+        self.idText=tk.Label(self.loginWindow, text=self.idText, font=(self.sFont, 18), bg=("black"), fg=(self.textColor))
         self.plainTextLabel=tk.Label(self.loginWindow, text="Plain Text", font=(self.sFont, 18), bg=("black"), fg=(self.textColor))
-        self.cipherTextLabel=tk.Label(self.loginWindow, text="Cipher Text", font=(self.sFont, 18), bg=("black"), fg=(self.textColor))
+        self.cipherTextLabel=tk.Label(self.loginWindow, text="Cipher Text", font=(self.sFont, 18), bg=("black"), fg=(self.textColor), state="disabled")
+        self.encryptionSectionLabel=tk.Label(self.loginWindow, text="Encryption Options", font=(self.sFont, 20), bg=("black"), fg=(self.textColor))
         #place labels
         self.idLabel.place(x=50,y=200)
+        self.idText.place(x=100,y=200)
         self.plainTextLabel.place(x=50,y=300)
         self.cipherTextLabel.place(x=500, y=300)
+        self.encryptionSectionLabel.place(x=950,y= 75)
+        #define plainText stringVar
+        self.plainText=tk.StringVar(self.loginWindow,'')
         #create text fields:
         self.plainTextField=scrolledtext.ScrolledText(self.loginWindow, font=(self.sFont, 12), height=15, width=30, wrap=tk.WORD)
         self.cipherTextField=scrolledtext.ScrolledText(self.loginWindow, font=(self.sFont, 12), height=15, width=30, wrap=tk.WORD)
+        #EXTRA CODE: self.cipherTextField.insert("1.0","Type in Plain Text First. This box is read only.")
+        self.cipherTextField["state"]="disabled"
         #place text fields
         self.plainTextField.place(x=50,y=350)
         self.cipherTextField.place(x=500,y=350)
 
         #CRUD Buttons for GUI
         #create buttons
-        self.insertButton=tk.Button(self.loginWindow, text="Save New Message", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.insertCrypto)
-        self.updateButton=tk.Button(self.loginWindow, text="Save Changes", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.updateCrypto)
-        self.deleteButton=tk.Button(self.loginWindow, text="Delete a Message", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.deleteCrypto)
-        self.backAllButton=tk.Button(self.loginWindow, text="|<<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.backAllCrypto)
-        self.back2Button=tk.Button(self.loginWindow, text="<<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.back2Crypto)
-        self.back1Button=tk.Button(self.loginWindow, text="<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.back1Crypto)
-        self.forward1Button=tk.Button(self.loginWindow, text=">", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward1Crypto)
-        self.forward2Button=tk.Button(self.loginWindow, text=">>", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward2Crypto)
-        self.forwardAllButton=tk.Button(self.loginWindow, text=">>|", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forwardAllCrypto)
+        self.insertButton=tk.Button(self.loginWindow, text="Save New Message", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.insertCryptoGUI)
+        self.updateButton=tk.Button(self.loginWindow, text="Save Changes", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.updateCryptoGUI)
+        self.deleteButton=tk.Button(self.loginWindow, text="Delete a Message", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.deleteCryptoGUI)
+        self.backAllButton=tk.Button(self.loginWindow, text="|<<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.backAllCryptoGUI)
+        self.back2Button=tk.Button(self.loginWindow, text="<<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.back2CryptoGUI)
+        self.back1Button=tk.Button(self.loginWindow, text="<", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.back1CryptoGUI)
+        self.forward1Button=tk.Button(self.loginWindow, text=">", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward1CryptoGUI)
+        self.forward2Button=tk.Button(self.loginWindow, text=">>", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward2CryptoGUI)
+        self.forwardAllButton=tk.Button(self.loginWindow, text=">>|", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forwardAllCryptoGUI)
         #place buttons
         self.insertButton.place(x=600,y=50)
         self.updateButton.place(x=600,y=100)
@@ -152,7 +173,98 @@ class CryptoGUI:
         self.forward1Button.place(x=500,y=600)
         self.forward2Button.place(x=600,y=600)
         self.forwardAllButton.place(x=700,y=600)
+
+        #line Image to seperate Text Fields with the Encryption Fields on GUI
+        self.bgPic = Image.open("greenLine.png")
+        self.bgPic = self.bgPic.resize((30, 600), Image.ANTIALIAS)
+        self.bPic = ImageTk.PhotoImage(self.bgPic)
+        self.bMyPic = tk.Label(self.loginWindow, image=self.bPic, bg="black")
+        self.bMyPic.place(x = 900, y = 50)
+
         #all SPECIFICALLY encryption selection buttons, labels, etc.
+        #ComboBox 1's LABEL
+        self.firstEncryptionLabel=tk.Label(self.loginWindow, text="Encryption Method:", font=(self.sFont, 14), bg=("black"), fg=(self.textColor))
+        #place label
+        self.firstEncryptionLabel.place(x=950,y=150)
+        # ComboBox 1 for choosing method of encryption
+        #list of encryption options 1
+        self.optionsList1 = ["Caesar Cipher", "Base32", "Hexadecimal", "Book Cipher"]
+        #set a StringVar object in the window
+        self.firstEncryptionOptionValue = tk.StringVar(self.loginWindow,'')
+        #default value for encryption options 1
+        self.firstEncryptionOptionValue.set("Choose Encryption Method")
+        #establish combobox for choosing encryption 1
+        self.firstEncryptionOptionMenu = ttk.Combobox(self.loginWindow, textvariable=  self.firstEncryptionOptionValue, state = 'readonly', foreground = "grey", font = (self.sFont, 16),width = 25, values = self.optionsList1)
+        #place the combobox 1
+        self.firstEncryptionOptionMenu.place(x=950,y=200)
+        #if the combobox value is ever changed, call upon the function self.checkEncryptionResult1
+        self.firstEncryptionOptionValue.trace_add("write", self.checkEncryptionResult1)
+
+    def checkEncryptionResult1(self,var,index,mode):
+        #if the previous selection was a caesar cipher or book cipher, meaning extra GUI parts, delete the GUI parts.
+        if self.recentSelection1=="Caesar Cipher" or self.recentSelection1=="Book Cipher":
+                self.secondEncryptionLabel.destroy()
+                self.secondEncryptionOptionMenu.destroy()
+                if self.isEncryptButton=="True":
+                    self.encryptButton.destroy()
+                    self.isEncryptButton="False"
+        #destroy the encrypt button if it is there from a previous selection
+        elif self.isEncryptButton=="True":
+            self.encryptButton.destroy()
+            self.isEncryptButton="False"
+        #get the user choice for combobox1
+        self.userChoice1=self.firstEncryptionOptionMenu.get()
+        #if the user chose caesar cipher, run this
+        if self.userChoice1=="Caesar Cipher":
+            self.recentSelection1="Caesar Cipher"
+            self.secondEncryptionValueStart()
+        #if the user chose book cipher, run this
+        elif self.userChoice1=="Book Cipher":
+            self.recentSelection1="Book Cipher"
+            self.secondEncryptionValueStart()
+        #if the user chose Base 32 or hexadecimal, run this
+        elif self.userChoice1=="Base32" or self.userChoice1=="Hexadecimal":
+            self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
+            self.encryptButton.place(x=950,y=250)
+            self.isEncryptButton="True"
+
+    def checkEncryptionResult2(self,var,index,mode):
+        self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
+        self.encryptButton.place(x=950,y=350)
+        self.isEncryptButton="True"
+
+
+    def encryptGUI(self):
+        #FIX:
+        #a lot of conditionals
+
+        #then a thing that inserts the ciphered text to the text field "cipher text"
+        pass
+    
+    def secondEncryptionValueStart(self):
+        #pass the variable self.userChoice1 without actually you know, passing it through the argument :D
+        #FIX:
+        if self.userChoice1=="Caesar Cipher":
+            #ComboBox 2's LABEL
+            self.secondEncryptionLabel=tk.Label(self.loginWindow, text="Rotate by:", font=(self.sFont, 14), bg=("black"), fg=(self.textColor))
+            #place label
+            self.secondEncryptionLabel.place(x=950,y=250)
+            # ComboBox 2 for choosing method of encryption
+            #list of encryption options 2
+            self.optionsList2 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+            #set a StringVar object in the window
+            self.secondEncryptionOptionValue = tk.StringVar(self.loginWindow,'')
+            #default value for encryption options 2
+            self.secondEncryptionOptionValue.set("Choose Rotation Key")
+            #establish combobox for choosing encryption 2
+            self.secondEncryptionOptionMenu = ttk.Combobox(self.loginWindow, textvariable=self.secondEncryptionOptionValue, state = 'readonly', foreground = "grey", font = (self.sFont, 16),width = 25, values = self.optionsList2)
+            #place the combobox 2
+            self.secondEncryptionOptionMenu.place(x=950,y=300)
+            #if the combobox value is ever changed, call upon the function self.checkEncryptionResult2
+            self.secondEncryptionOptionValue.trace_add("write", self.checkEncryptionResult2)
+        elif self.userChoice1=="Book Cipher":
+            #FIX: ask pranavi about how to do file upload thingy?
+            pass
 
     def destroyLoginButtons(self):
         #destroy all of the login buttons, labels, entries on screem
@@ -271,22 +383,35 @@ class CryptoGUI:
         self.loginWindow.title("Crypto")
         self.createCryptoButtons()
         
-    def insertCrypto(self):
+    def insertCryptoGUI(self):
+        #FIX:
+        #something for the id label
+        plainText=self.plainTextField.get()
+        cipherText=self.cipherTextField.get()
+        user1=self.userChoice1
+        db.insertCryptoDB(cryptoID,plainText,cipherText,user1)
+    def updateCryptoGUI(self):
+        #FIX:
         pass
-    def updateCrypto(self):
+    def deleteCryptoGUI(self):
+        #FIX:
         pass
-    def deleteCrypto(self):
+    def backAllCryptoGUI(self):
+        #FIX:
         pass
-    def backAllCrypto(self):
+    def back2CryptoGUI(self):
+        #FIX:
         pass
-    def back2Crypto(self):
+    def back1CryptoGUI(self):
+        #FIX:
         pass
-    def back1Crypto(self):
+    def forward1CryptoGUI(self):
+        #FIX:
         pass
-    def forward1Crypto(self):
+    def forward2CryptoGUI(self):
+        #FIX:
         pass
-    def forward2Crypto(self):
-        pass
-    def forwardAllCrypto(self):
+    def forwardAllCryptoGUI(self):
+        #FIX:
         pass
         
