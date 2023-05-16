@@ -18,6 +18,7 @@ from PIL import ImageTk, Image
 
 class CryptoGUI:
 
+    #the class' __init__
     def __init__(self):
         #uniform variables for text color and font [the s stands for standard]
         self.textColor= "#00cc00"
@@ -30,6 +31,9 @@ class CryptoGUI:
         self.userChoice2=""
         self.userID=0
         self.entryNumber=0
+        self.connected=True
+        self.navIsDisabled=True
+        self.keyResult=""
         #define connection and instantiation of the database file
         self.db=CryptoDatabase()
         self.encrypt=Encryption()
@@ -41,6 +45,7 @@ class CryptoGUI:
         #self.createCryptoButtons()
         self.loginWindow.mainloop()
     
+    #creates the window and runs mainloop
     def createLoginWindow(self):
         #define the loginWindow and its attributes
         self.loginWindow=tk.Tk()
@@ -48,12 +53,15 @@ class CryptoGUI:
         self.loginWindow.geometry("1280x600")
         self.loginWindow['bg']="black"
         self.loginWindow.attributes('-fullscreen',True)
+
+        #HERE IG IDK IF THIS WORKS FOR u but here
         self.logo = Image.open("logo.png")
         self.logo = self.logo.resize((256, 120), Image.ANTIALIAS)
         self.lPic = ImageTk.PhotoImage(self.logo)
         self.lMyPic = tk.Label(self.loginWindow, image=self.lPic, bg="black")
         self.lMyPic.place(x = 50, y = 10)
 
+    #creates the menu at the top
     def createLoginMenu(self):
         #menu system initiated
         self.menubar= tk.Menu(self.loginWindow)
@@ -65,6 +73,24 @@ class CryptoGUI:
         self.helpMenu.add_command(label="About",font = (self.sFont, 18), foreground = (self.textColor), command = self.aboutWindow)
         self.menubar.add_cascade(label = "Help", font = (self.sFont, 18), foreground = (self.textColor), menu = self.helpMenu)
 
+    #creates the CRUD menu when user is logged into Crypto
+    def createCryptoMenu(self):
+        self.crudMenu = tk.Menu(self.menubar, tearoff = 0)
+        self.crudMenu.add_command(label = "Create", font = (self.sFont, 18), foreground = (self.textColor), command = self.insertCryptoGUI)
+        self.crudMenu.add_command(label = "Update", font = (self.sFont, 18), foreground = (self.textColor), command = self.updateCryptoGUI)
+        self.crudMenu.add_command(label = "Delete", font = (self.sFont, 18), foreground = (self.textColor), command = self.deleteCryptoGUI)
+        self.menubar.add_cascade(label = "CRUD", font = (self.sFont, 18), foreground = (self.textColor), menu = self.crudMenu)
+
+    #prompt the user for the password to access navigation
+    def passwordPrompt(self):
+        inputtedPassword = tk.simpledialog.askstring("Verify Identity", "Please enter your password again to confirm that you want to access the decrypted messages.")
+        result = self.db.checkPassword2(self.userID, inputtedPassword)
+        if result == "incorrect password":
+            return 1
+        self.buttonCoverUp.destroy()
+        self.navIsDisabled=False
+
+    #creates the widgets needed for the login UI
     def createLoginButtons(self):
         #define buttons
         self.exitButton=tk.Button(self.loginWindow, text="Exit", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.destroyWindow)
@@ -93,6 +119,7 @@ class CryptoGUI:
         self.usernameEntry.place(x=480,y=250)
         self.passwordEntry.place(x=480,y=350)
 
+    #creates the widgets needed for the sign up UI
     def createSignupButtons(self):
         #define signup buttons
         self.backButton=tk.Button(self.loginWindow, text="Back", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.openLoginFromSU)
@@ -137,9 +164,22 @@ class CryptoGUI:
         self.b2MyPic = tk.Label(self.loginWindow, image=self.b2Pic, bg="black")
         self.b2MyPic.place(x = 0, y = 230)
 
+    #creates the widgets needed for the Crypto UI
     def createCryptoButtons(self):
-        self.backButton=tk.Button(self.loginWindow, text="Back", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.openLoginFromCrypto)
+        #logo to fill up space in the interface
+        self.logo2 = Image.open("logo2.png")
+        self.logo2 = self.logo2.resize((350, 350), Image.ANTIALIAS)
+        self.l2Pic = ImageTk.PhotoImage(self.logo2)
+        self.l2MyPic = tk.Label(self.loginWindow, image=self.l2Pic, bg="black")
+        self.l2MyPic.place(x = 925, y = 350)
+
+        self.createCryptoMenu()
+        self.backButton=tk.Button(self.loginWindow, text="Log out", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.openLoginFromCrypto)
         self.backButton.place(x=325,y=50)
+        self.connectionButton=tk.Button(self.loginWindow, text="Disconnect", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.connectionGUI)
+        self.connectionButton.place(x=325,y=100)
+        self.clearButton=tk.Button(self.loginWindow, text="Clear Screen", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.clearActivity)
+        self.clearButton.place(x=325,y=150)
         #define self.idText
         self.idText=""
         #GUI fields' labels, text fields,etc
@@ -184,6 +224,7 @@ class CryptoGUI:
         self.forward1Button=tk.Button(self.loginWindow, text=">", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward1CryptoGUI)
         self.forward2Button=tk.Button(self.loginWindow, text=">>", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forward2CryptoGUI)
         self.forwardAllButton=tk.Button(self.loginWindow, text=">>|", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.forwardAllCryptoGUI)
+        self.buttonCoverUp=tk.Button(self.loginWindow, text="Verify your identity to access Navigation.", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.passwordPrompt)
         #place buttons
         self.insertButton.place(x=600,y=50)
         self.updateButton.place(x=600,y=100)
@@ -194,6 +235,7 @@ class CryptoGUI:
         self.forward1Button.place(x=500,y=600)
         self.forward2Button.place(x=600,y=600)
         self.forwardAllButton.place(x=700,y=600)
+        self.buttonCoverUp.place(x=200,y=600)
 
         #line Image to seperate Text Fields with the Encryption Fields on GUI
         self.bgPic = Image.open("greenLine.png")
@@ -209,7 +251,7 @@ class CryptoGUI:
         self.firstEncryptionLabel.place(x=950,y=150)
         # ComboBox 1 for choosing method of encryption
         #list of encryption options 1
-        self.optionsList1 = ["Caesar Cipher", "Base32", "Hex", "Book Cipher"]
+        self.optionsList1 = ["Caesar Cipher", "Base32", "Hex", "Book Cipher","AES"]
         #set a StringVar object in the window
         self.firstEncryptionOptionValue = tk.StringVar(self.loginWindow,'')
         #default value for encryption options 1
@@ -221,21 +263,28 @@ class CryptoGUI:
         #if the combobox value is ever changed, call upon the function self.checkEncryptionResult1
         self.firstEncryptionOptionValue.trace_add("write", self.checkEncryptionResult1)
 
+    #checks the first combo box when it is changed
     def checkEncryptionResult1(self,var,index,mode):
+        #destroy the encrypt button if it is there from a previous selection
+        #FIX: the weird aes encrypt button error
+        if self.isEncryptButton=="True":
+            self.encryptButton.destroy()
+            self.isEncryptButton="False"
+
+        try:
+            self.encryptButton.destroy()
+        except:
+            pass
         #if the previous selection was a caesar cipher or book cipher, meaning extra GUI parts, delete the GUI parts.
         if self.recentSelection1=="Caesar Cipher":
             self.secondEncryptionLabel.destroy()
             self.secondEncryptionOptionMenu.destroy()
-            if self.isEncryptButton=="True":
-                self.encryptButton.destroy()
-                self.isEncryptButton="False"
         elif self.recentSelection1=="Book Cipher":
             self.fileUploadLabel.destroy()
             self.fileUploadButton.destroy()
-        #destroy the encrypt button if it is there from a previous selection
-        elif self.isEncryptButton=="True":
-            self.encryptButton.destroy()
-            self.isEncryptButton="False"
+        elif self.recentSelection1=="AES":
+            self.secondEncryptionLabel.destroy()
+            self.keyEntry.destroy()
         #get the user choice for combobox1
         self.userChoice1=self.firstEncryptionOptionMenu.get()
         #if the user chose caesar cipher, run this
@@ -257,20 +306,24 @@ class CryptoGUI:
             self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
             self.encryptButton.place(x=950,y=250)
             self.isEncryptButton="True"
+        elif self.userChoice1=="AES":
+            self.recentSelection1="AES"
+            self.secondEncryptionValueStart()
 
+    #changes combo boxes based on new query selections from the navigation button
     def postNavigationEncryptionSetUp(self):
         #if the previous selection was a caesar cipher or book cipher, meaning extra GUI parts, delete the GUI parts.
         if self.recentSelection1=="Caesar Cipher":
             self.secondEncryptionLabel.destroy()
             self.secondEncryptionOptionMenu.destroy()
-            if self.isEncryptButton=="True":
-                self.encryptButton.destroy()
-                self.isEncryptButton="False"
         elif self.recentSelection1=="Book Cipher":
             self.fileUploadLabel.destroy()
             self.fileUploadButton.destroy()
+        elif self.recentSelection1=="AES":
+            self.secondEncryptionLabel.destroy()
+            self.keyEntry.destroy()
         #destroy the encrypt button if it is there from a previous selection
-        elif self.isEncryptButton=="True":
+        if self.isEncryptButton=="True":
             self.encryptButton.destroy()
             self.isEncryptButton="False"
         #get the user choice for combobox1
@@ -295,14 +348,41 @@ class CryptoGUI:
             self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
             self.encryptButton.place(x=950,y=250)
             self.isEncryptButton="True" 
+        elif self.userChoice1=="AES":
+            self.recentSelection1="AES"
+            self.secondEncryptionValueStart()
+            self.keyVar.set(self.tupleResult[6])
         elif self.userChoice1=="Choose Encryption Method":
             self.recentSelection1=""
+    
+    #changes encryption side to the OG
+    def revertEncryptionMenu(self):
+        #if the previous selection was a caesar cipher or book cipher, meaning extra GUI parts, delete the GUI parts.
+        if self.recentSelection1=="Caesar Cipher":
+            self.secondEncryptionLabel.destroy()
+            self.secondEncryptionOptionMenu.destroy()
+            if self.isEncryptButton=="True":
+                self.encryptButton.destroy()
+                self.isEncryptButton="False"
+        elif self.recentSelection1=="Book Cipher":
+            self.fileUploadLabel.destroy()
+            self.fileUploadButton.destroy()
+        elif self.recentSelection1=="AES":
+            self.secondEncryptionLabel.destroy()
+            self.keyEntry.destroy()
+        #destroy the encrypt button if it is there from a previous selection
+        elif self.isEncryptButton=="True":
+            self.encryptButton.destroy()
+            self.isEncryptButton="False"
+        #add support for AES
 
+    #checks the second combo box when it is changed 
     def checkEncryptionResult2(self,var,index,mode):
         self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
         self.encryptButton.place(x=950,y=350)
         self.isEncryptButton="True"
 
+    #enrypts text in plaintext field and puts it in the cipher text field
     def encryptGUI(self):
         self.cipherText=""
         self.userChoice1=self.firstEncryptionOptionMenu.get()
@@ -325,6 +405,9 @@ class CryptoGUI:
             self.userMessage="No Book File to encode using B-Cipher"
             self.userMessageLabel.config(text=self.userMessage)
             self.userMessageLabel.after(3000, self.hideUserMessage)
+        elif self.userChoice1=="AES":
+            self.userKey=self.keyEntry.get()
+            self.cipherText=self.encrypt.AESencrypt(self.plainText, self.userKey)
         else:
             self.userMessage="Some error occured: please try again."
             self.userMessageLabel.config(text=self.userMessage)
@@ -334,7 +417,12 @@ class CryptoGUI:
         self.cipherTextField.insert("end",self.cipherText)
         self.cipherTextField["state"]="disabled"
     
+    #sets up the second combo box for caesar cipher and text file upload button for book cipher
     def secondEncryptionValueStart(self):
+        try:
+            self.destroyTheButton()
+        except:
+            pass
         if self.userChoice1=="Caesar Cipher":
             #ComboBox 2's LABEL
             self.secondEncryptionLabel=tk.Label(self.loginWindow, text="Rotate by:", font=(self.sFont, 14), bg=("black"), fg=(self.textColor))
@@ -360,8 +448,26 @@ class CryptoGUI:
             self.fileUploadLabel.place(x=950,y=250)
             self.fileUploadButton = tk.Button(self.loginWindow, text='Text File Upload', command=self.uploadFile, font=(self.sFont, 14))
             self.fileUploadButton.place(x=1000,y=300)
+        elif self.userChoice1=="AES":
+            self.secondEncryptionLabel=tk.Label(self.loginWindow, text="AES encryption key:", font=(self.sFont, 14), bg=("black"), fg=(self.textColor))
+            #place label
+            self.secondEncryptionLabel.place(x=950,y=250)
+            self.keyVar = tk.StringVar(self.loginWindow,'')
+            self.keyEntry=tk.Entry(self.loginWindow, textvariable= self.keyVar, font=(self.sFont, 16), relief= "sunken")
+            self.keyEntry.place(x=950,y=300)
+            self.keyVar.trace_add("write", self.afterKeyInput)
 
-    def uploadFile(self,event=None):
+    def afterKeyInput(self, var, index, mode):
+        self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
+        self.encryptButton.place(x=950,y=350)
+        self.isEncryptButton="True"
+
+    def destroyTheButton(self):
+        self.encryptButton.destroy()
+        self.isEncryptButton="False"
+
+    #when the text-file-upload-button is pressed, initiate an tkinterupload thingy
+    def uploadFile(self, event=None):
         #define the various file types that are used
         fileTypes = (('text files', '*.txt'),('All files', '*.*'))
         #create a dialog that prompts for a text file
@@ -372,12 +478,15 @@ class CryptoGUI:
             self.userMessageLabel.after(3000, self.hideUserMessage)
             return []
         #establishes encrypt button after file is uploaded?
+        self.fileUploadButton.config(text="Uploaded ✓")
         self.encryptButton=tk.Button(self.loginWindow, text="ENCRYPT MESSAGE", font = (self.sFont, 18), borderwidth= 0, fg = (self.textColor), bg=("black"), command=self.encryptGUI)
         self.encryptButton.place(x=950,y=350)
         self.isEncryptButton="True"
 
+    #destroy the widgets on the login UI
     def destroyLoginButtons(self):
-        #destroy all of the login buttons, labels, entries on screem
+        #destroy all of the login buttons, labels, entries on screen
+        self.userMessage="" 
         self.exitButton.destroy()
         self.loginButton.destroy()
         self.startSignupButton.destroy()
@@ -389,6 +498,7 @@ class CryptoGUI:
         self.aboutButton.destroy()
         self.helpButton.destroy()
 
+    #destroy the widgets on the sign up UI
     def destroySignupButtons(self):
         self.backButton.destroy()
         self.signupButton.destroy()    
@@ -398,13 +508,15 @@ class CryptoGUI:
         self.newPasswordSULabel.destroy()  
         self.emailSUEntry.destroy()  
         self.usernameSUEntry.destroy()  
-        self.PasswordSUEntry.destroy()  
+        self.PasswordSUEntry.destroy() 
+        self.userMessage="" 
         self.userMessageLabel.destroy()
         self.aboutButton.destroy()
         self.helpButton.destroy()
         self.b2MyPic.destroy()
         self.bMyPic.destroy()
 
+    #destroy the widgets on the crypto UI
     def destroyCryptoButtons(self):
         self.userMessage=""
         self.backButton.destroy()
@@ -419,6 +531,7 @@ class CryptoGUI:
         self.insertButton.destroy()
         self.updateButton.destroy()
         self.deleteButton.destroy()
+        self.clearButton.destroy()
         self.backAllButton.destroy()
         self.back2Button.destroy()
         self.back1Button.destroy()
@@ -428,20 +541,38 @@ class CryptoGUI:
         self.bMyPic.destroy()
         self.firstEncryptionLabel.destroy()
         self.firstEncryptionOptionMenu.destroy()
+        self.connectionButton.destroy()
+        self.l2MyPic.destroy()
         if self.userChoice1=="Caesar Cipher":
             self.secondEncryptionLabel.destroy()
             self.secondEncryptionOptionMenu.destroy()
         if self.userChoice1=="Book Cipher":
             self.fileUploadLabel.destroy()
             self.fileUploadButton.destroy()
+        if self.userChoice1=="AES":
+            self.secondEncryptionLabel.destroy()
+            self.keyEntry.destroy()
         if self.isEncryptButton=="True":
             self.encryptButton.destroy()
             self.isEncryptButton="False"
+        if self.navIsDisabled==True:
+            self.buttonCoverUp.destroy()
+        self.menubar= tk.Menu(self.loginWindow)
+        self.loginWindow.config(menu= self.menubar)
+        self.fileMenu = tk.Menu(self.menubar, tearoff = 0)
+        self.fileMenu.add_command(label = "Exit", font = (self.sFont, 18), foreground = (self.textColor), command = self.loginWindow.destroy)
+        self.menubar.add_cascade(label = "File", font = (self.sFont, 18), foreground = (self.textColor), menu = self.fileMenu)
+        self.helpMenu = tk.Menu(self.menubar, tearoff = 0)
+        self.helpMenu.add_command(label="About",font = (self.sFont, 18), foreground = (self.textColor), command = self.aboutWindow)
+        self.menubar.add_cascade(label = "Help", font = (self.sFont, 18), foreground = (self.textColor), menu = self.helpMenu)
 
+
+    #destroy the window
     def destroyWindow(self):
         #destroy/exit out the window
         self.loginWindow.destroy()
 
+    #makes a smaller window telling all about crypto
     def aboutWindow(self):
         messagebox.showinfo(title="About Crypto",
                             message="Crypto (short for Cryptography's Really Your Power To Own) is a database cryptographic encryption system developed by Michelle Luo.",
@@ -449,18 +580,21 @@ class CryptoGUI:
                             icon=messagebox.INFO
                             )
 
+    #makes a smaller window providing helpful instructions
     def helpWindow(self):
         messagebox.showinfo(title="Basic Navigation of Crypto",
-                            message="1. Sign Up for an Account \n2. Login with your Account \n3. Input your message in the PLAIN TEXT section,\n then choose an encryption method on the right.\n4. Once you are done filling out the encryption options, click ENCRYPT. \n5. You should now see an encrypted section of text in the CIPHER TEXT Field.",
+                            message="1. Sign Up for an Account \n2. Login with your Account \n3. Input your message in the PLAIN TEXT section,\n then choose an encryption method on the right.\n4. Once you are done filling out the encryption options, click ENCRYPT. \n5. You should now see an encrypted section of text in the CIPHER TEXT Field.\n\nYou can also insert, navigate, update, and delete these messages using the crypto database.",
                             detail="For more detailed instructions, please actually pay attention to Michelle Luo in her Master Project Presentation. :D",
                             icon=messagebox.INFO
                             )
 
+    #hide the red user message, this function is called after 3 seconds elsewhere
     def hideUserMessage(self):
         #hide the user warning message on screen
         self.userMessage=""
         self.userMessageLabel.config(text=self.userMessage)
 
+    #attempt to login to crypto
     def login(self):
         #gets user inputted username and password
         username=self.usernameEntry.get()
@@ -478,11 +612,18 @@ class CryptoGUI:
             self.userID=self.loginResult
             self.openCrypto()
 
+    #attempt to sign up with a new account
     def signup(self):
         #gets user inputted email, username, and password
         email=self.emailSUEntry.get()
         username=self.usernameSUEntry.get()
         password=self.PasswordSUEntry.get()
+        if email=="" or username=="" or password=="":
+            self.userMessage="Answer ALL Fields."
+            self.userMessageLabel.config(text=self.userMessage)
+            #the user message disappears after 3 seconds
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         signupResult=self.db.startAccount(email,username,password)
         if signupResult=="Account taken":
             self.userMessage="This Username is already taken!"
@@ -493,6 +634,7 @@ class CryptoGUI:
             self.destroySignupButtons()
             self.createLoginButtons()
 
+    #transitions from the sign up UI to the login UI
     def openLoginFromSU(self):
         #destroy the sign up GUI
         self.destroySignupButtons()
@@ -501,7 +643,12 @@ class CryptoGUI:
         #implement login GUI buttons
         self.createLoginButtons()
 
+    #transition from the crypto UI to the login UI
     def openLoginFromCrypto(self):
+        #if the user disconnected earlier, connect again for the login part
+        if self.connected==False:
+            self.connected=True
+            self.db.setConnection()
         #destroy crypto GUI
         self.destroyCryptoButtons()
          #change window title to login
@@ -509,6 +656,7 @@ class CryptoGUI:
         #implement login GUI buttons
         self.createLoginButtons()
 
+    #transition from login UI to the sign up UI
     def openSignup(self):
         #destroy the login GUI
         self.destroyLoginButtons()
@@ -517,14 +665,54 @@ class CryptoGUI:
         #implement signup GUI buttons
         self.createSignupButtons()
 
+    #transition from the login UI to the crypto UI 
     def openCrypto(self):
         #destroy the login GUI
         self.destroyLoginButtons()
         #change window title to Crypto
         self.loginWindow.title("Crypto")
         self.createCryptoButtons()
+    
+    #connects or disconnects from db #CRYPTO UI ONLY
+    def connectionGUI(self):
+        if self.connected==True:
+            self.connected=False
+            self.connectionButton.config(text="Connect")
+            self.db.breakConnection()
+            self.plainTextField.delete("1.0","end")
+            self.plainTextField["state"]="disabled"
+            self.cipherTextField["state"]="normal"
+            self.cipherTextField.delete("1.0","end")
+            self.cipherTextField["state"]="disabled"
+            self.firstEncryptionOptionValue.set("Choose Encryption Method")
+            self.revertEncryptionMenu()
+            self.firstEncryptionOptionMenu["state"]="disabled"
+            self.entryNumber=0
+            self.idText.configure(text="")
+        else:
+            self.connected=True
+            self.connectionButton.config(text="Disconnect")
+            self.db.setConnection()
+            self.plainTextField["state"]="normal"
+            self.cipherTextField["state"]="normal"
+            self.firstEncryptionOptionMenu["state"]="readonly"
+
+    #clears the plainText field, the cipherText field, and the encryption selection menu of any previous user inputted activity.
+    def clearActivity(self):
+        self.plainTextField.delete("1.0","end")
+        self.cipherTextField["state"]="normal"
+        self.cipherTextField.delete("1.0","end")
+        self.cipherTextField["state"]="disabled"
+        self.firstEncryptionOptionValue.set("Choose Encryption Method")
+        self.revertEncryptionMenu()
         
+    #inserts new entry into the crypto table #CRYPTO UI ONLY
     def insertCryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         newCryptoID=self.db.findMaxLength(self.userID)+1
         user1="NULL"
         user2="NULL"
@@ -541,14 +729,28 @@ class CryptoGUI:
             user1="hex"
         elif self.userChoice1=="Base32":
             user1="base"
+        elif self.userChoice1=="AES":
+            user1="aes"
+            user2=self.keyEntry.get()
         elif self.userChoice1=="":
             user1="NULL"
             user2="NULL"
         else:
             pass
-        self.db.insertCryptoDB(newCryptoID,plainText,cipherText,user1,user2,self.userID)
+        result= self.db.insertCryptoDB(newCryptoID,plainText,cipherText,user1,user2,self.userID)
+        if result==[]:
+                    self.userMessage="Did not Insert: Error Occured"
+                    self.userMessageLabel.config(text=self.userMessage)
+                    #the user message disappears after 3 seconds
+                    self.userMessageLabel.after(3000, self.hideUserMessage)
 
+    #updates entry in the crypto table #CRYPTO UI ONLY
     def updateCryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         user1="NULL"
         user2="NULL"
         #something for the id label
@@ -564,17 +766,36 @@ class CryptoGUI:
             user1="hex"
         elif self.userChoice1=="Base32":
             user1="base"
+        elif self.userChoice1=="AES":
+            user1="aes"
+            user2=self.keyEntry.get()
         elif self.userChoice1=="":
             user2="NULL"
         else:
             pass
-        self.db.updateCryptoDB(self.entryNumber,plainText,cipherText,user1,user2,self.userID)
+        result= self.db.updateCryptoDB(self.entryNumber,plainText,cipherText,user1,user2,self.userID)
+        if result==[]:
+                    self.userMessage="Did not Update: Error Occured"
+                    self.userMessageLabel.config(text=self.userMessage)
+                    #the user message disappears after 3 seconds
+                    self.userMessageLabel.after(3000, self.hideUserMessage)
 
+    #deletes entry in the crypto table #CRYPTO UI ONLY
     def deleteCryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         if self.entryNumber != 0:
             userPromptDelete=messagebox.askyesno("WARNING", "Do you really want to delete this record?")
             if userPromptDelete == True:
-                self.db.deleteCryptoDB(self.entryNumber, self.userID)
+                result=self.db.deleteCryptoDB(self.entryNumber, self.userID)
+                if result==[]:
+                    self.userMessage="Did not delete: Error Occured"
+                    self.userMessageLabel.config(text=self.userMessage)
+                    #the user message disappears after 3 seconds
+                    self.userMessageLabel.after(3000, self.hideUserMessage)
                 self.entryNumber=0
                 self.idText.configure(text="")
                 self.plainTextField.delete("1.0","end")
@@ -594,9 +815,19 @@ class CryptoGUI:
             #the user message disappears after 3 seconds
             self.userMessageLabel.after(3000, self.hideUserMessage)
 
+    #goes to first entry in crypto table #CRYPTO UI ONLY
     def backAllCryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.tupleResult=self.db.goToEntry(1, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -614,14 +845,26 @@ class CryptoGUI:
         elif self.tupleResult[5]=="book":
             self.fileName=self.tupleResult[6]
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
 
+    #goes back two entries in crypto table #CRYPTO UI ONLY
     def back2CryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.entryNumber-2
         if self.entryNumber<1:
             self.entryNumber=1
         self.tupleResult=self.db.goToEntry(self.entryNumber, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -639,14 +882,26 @@ class CryptoGUI:
         elif self.tupleResult[5]=="book":
             self.fileName=self.tupleResult[6]
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
 
+    #goes back one entry in the crypto table #CRYPTO UI ONLY
     def back1CryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.entryNumber-1
         if self.entryNumber<1:
             self.entryNumber=1
         self.tupleResult=self.db.goToEntry(self.entryNumber, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -664,15 +919,27 @@ class CryptoGUI:
         elif self.tupleResult[5]=="book":
             self.fileName=self.tupleResult[6]
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
 
+    #goes forward one entry in the crypto table #CRYPTO UI ONLY
     def forward1CryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         maxNum=self.db.findMaxLength(self.userID)
         self.entryNumber=self.entryNumber+1
         if self.entryNumber>maxNum:
             self.entryNumber=maxNum
         self.tupleResult=self.db.goToEntry(self.entryNumber, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -690,15 +957,27 @@ class CryptoGUI:
         elif self.tupleResult[5]=="book":
             self.fileName=self.tupleResult[6]
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
 
+    #goes forward two entry in the crypto table #CRYPTO UI ONLY
     def forward2CryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         maxNum=self.db.findMaxLength(self.userID)
         self.entryNumber=self.entryNumber+2
         if self.entryNumber>maxNum:
             self.entryNumber=maxNum
         self.tupleResult=self.db.goToEntry(self.entryNumber, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -716,12 +995,24 @@ class CryptoGUI:
         elif self.tupleResult[5]=="book":
             self.fileName=self.tupleResult[6]
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
 
+    #goes to last entry in the crypto table #CRYPTO UI ONLY
     def forwardAllCryptoGUI(self):
+        if self.connected==False:
+            self.userMessage="Not connected to the database"
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         maxLength=self.db.findMaxLength(self.userID)
         self.tupleResult=self.db.goToEntry(maxLength, self.userID)
-
+        if self.tupleResult=="No records available to navigate":
+            self.userMessage=self.tupleResult
+            self.userMessageLabel.config(text=self.userMessage)
+            self.userMessageLabel.after(3000, self.hideUserMessage)
+            return 1
         self.entryNumber=self.tupleResult[1]
         self.idText.configure(text=str(self.entryNumber))
         self.plainTextField.delete("1.0","end")
@@ -738,5 +1029,7 @@ class CryptoGUI:
             self.firstEncryptionOptionValue.set("Base32")
         elif self.tupleResult[5]=="book":
             self.firstEncryptionOptionValue.set("Book Cipher")
+        elif self.tupleResult[5]=="aes":
+            self.firstEncryptionOptionValue.set("AES")
         self.postNavigationEncryptionSetUp()
         
