@@ -10,5 +10,6 @@ Currently, the different Encryption/Cryptographic services that Crypto provides 
    - Hex
    - Base32
    - Book Cipher (achieved by the user uploading a text file to the interface.)
+   - AES (Advanced Encryption Standard)
 
 Written by Michelle Luo
